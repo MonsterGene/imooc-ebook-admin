@@ -89,6 +89,7 @@ export default {
         message: '电子书删除成功',
         type: 'success'
       })
+      this.$emit('onRemove')
     },
     onExceed() {
       this.$message({

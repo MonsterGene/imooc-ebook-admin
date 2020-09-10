@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="postForm" :model="postForm" label-suffix=":">
+  <el-form ref="postForm" :model="postForm" :rules="rules" label-suffix=":">
     <sticky class-name="sub-navbar">
       <el-button @click="showGuide">显示帮助</el-button>
       <el-button
@@ -30,19 +30,19 @@
           </el-form-item>
           <el-row>
             <el-col :span="12">
-              <el-form-item label="作者" :label-width="labelWidth">
+              <el-form-item prop="author" label="作者" :label-width="labelWidth">
                 <el-input v-model="postForm.author" placeholder="作者" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="出版社" :label-width="labelWidth">
+              <el-form-item prop="publisher" label="出版社" :label-width="labelWidth">
                 <el-input v-model="postForm.publisher" placeholder="出版社" />
               </el-form-item>
             </el-col>
           </el-row>
           <el-row>
             <el-col :span="12">
-              <el-form-item label="语言" :label-width="labelWidth">
+              <el-form-item prop="language" label="语言" :label-width="labelWidth">
                 <el-input v-model="postForm.language" placeholder="语言" />
               </el-form-item>
             </el-col>
@@ -90,7 +90,7 @@
             <el-col :span="24">
               <el-form-item label="目录" :label-width="labelWidth">
                 <div v-if="postForm.contents && postForm.contents.length > 0" class="contents-wrapper">
-                  <el-tree />
+                  <el-tree :data="contentsTree" @node-click="contentClick" />
                 </div>
                 <span v-else>无</span>
               </el-form-item>
@@ -108,6 +108,28 @@ import Warning from './Warning'
 import EbookUpload from '../../../components/EbookUpload/index'
 import MdInput from '../../../components/MDinput/index'
 
+const defaultForm = {
+  title: '',
+  author: '',
+  publisher: '',
+  language: '',
+  rootFile: '',
+  cover: '',
+  url: '',
+  originalName: '',
+  fileName: '',
+  coverPath: '',
+  filePath: '',
+  unzipPath: ''
+}
+
+const fields = {
+  title: '标题',
+  author: '作者',
+  publisher: '出版社',
+  language: '语言'
+}
+
 export default {
   components: {
     Sticky,
@@ -119,14 +141,36 @@ export default {
     isEdit: Boolean
   },
   data() {
+    const validateRequire = (rule, value, callback) => {
+      if (typeof value === 'undefined' || value.length === 0) {
+        callback(new Error(fields[rule.field] + '必须填写'))
+      } else {
+        callback()
+      }
+    }
     return {
       loading: false,
       postForm: {},
       fileList: [],
-      labelWidth: '120px'
+      labelWidth: '120px',
+      contentsTree: [],
+      rules: {
+        title: [{ validator: validateRequire }],
+        author: [{ validator: validateRequire }],
+        publisher: [{ validator: validateRequire }],
+        language: [{ validator: validateRequire }]
+      }
     }
   },
   methods: {
+    contentClick(data) {
+      console.log(data)
+      window.open(data.text)
+    },
+    setDefault() {
+      this.postForm = { ...defaultForm }
+      this.contentsTree = []
+    },
     setData(data) {
       const {
         title,
@@ -138,6 +182,7 @@ export default {
         url,
         originalName,
         contents,
+        contentsTree,
         fileName,
         coverPath,
         filePath,
@@ -159,6 +204,7 @@ export default {
         filePath,
         unzipPath
       }
+      this.contentsTree = contentsTree
     },
     onUploadSuccess(data) {
       console.log('ebook upload success', data)
@@ -166,12 +212,21 @@ export default {
     },
     onUploadRemove() {
       console.log('ebook remove success')
+      this.setDefault()
     },
     submitForm() {
-      this.loading = true
-      setTimeout(() => {
-        this.loading = false
-      }, 1200)
+      if (!this.loading) {
+        this.loading = true
+        this.$refs.postForm.validate((valid, fields) => {
+          if (valid) {
+            console.log(valid, fields)
+          } else {
+            const [{ message }] = Object.values(fields)[0]
+            this.$message({ message, type: 'error' })
+            this.loading = false
+          }
+        })
+      }
     },
     showGuide() {
       console.log('show guide ...')
