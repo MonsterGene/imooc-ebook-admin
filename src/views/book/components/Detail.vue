@@ -107,7 +107,7 @@ import Sticky from '../../../components/Sticky/index'
 import Warning from './Warning'
 import EbookUpload from '../../../components/EbookUpload/index'
 import MdInput from '../../../components/MDinput/index'
-import { createBook } from '../../../api/book'
+import { createBook, getBook } from '../../../api/book'
 
 // const defaultForm = {
 //   title: '',
@@ -163,7 +163,19 @@ export default {
       }
     }
   },
+  created() {
+    console.log(this.$route.params)
+    if (this.isEdit) {
+      const fileName = this.$route.params.fileName
+      this.getBookData(fileName)
+    }
+  },
   methods: {
+    getBookData(fileName) {
+      getBook(fileName).then(res => {
+        this.setData(res.data)
+      })
+    },
     contentClick(data) {
       console.log(data)
       window.open(data.text)
