@@ -173,7 +173,7 @@ export default {
   methods: {
     getBookData(fileName) {
       getBook(fileName).then(res => {
-        this.setData(res.data)
+        this.setData(res.data.book)
       })
     },
     contentClick(data) {
