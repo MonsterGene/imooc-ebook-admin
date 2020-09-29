@@ -89,7 +89,7 @@
           <el-row>
             <el-col :span="24">
               <el-form-item prop="contents" label="目录" :label-width="labelWidth">
-                <div v-if="postForm.contents && postForm.contents.length > 0" class="contents-wrapper">
+                <div v-if="contentsTree && contentsTree.length > 0" class="contents-wrapper">
                   <el-tree :data="contentsTree" @node-click="contentClick" />
                 </div>
                 <span v-else>无</span>
@@ -107,7 +107,7 @@ import Sticky from '../../../components/Sticky/index'
 import Warning from './Warning'
 import EbookUpload from '../../../components/EbookUpload/index'
 import MdInput from '../../../components/MDinput/index'
-import { createBook, getBook } from '../../../api/book'
+import { createBook, getBook, updateBook } from '../../../api/book'
 
 // const defaultForm = {
 //   title: '',
@@ -178,7 +178,9 @@ export default {
     },
     contentClick(data) {
       console.log(data)
-      window.open(data.text)
+      if (data.text) {
+        window.open(data.text)
+      }
     },
     setDefault() {
       // this.postForm = { ...defaultForm }
@@ -220,6 +222,7 @@ export default {
         unzipPath
       }
       this.contentsTree = contentsTree
+      this.fileList = [{ name: originalName || fileName, url }]
     },
     onUploadSuccess(data) {
       console.log('ebook upload success', data)
@@ -252,7 +255,9 @@ export default {
                 this.loading = false
               })
             } else {
-              // updateBook(book)
+              updateBook(book).then(res => {
+                console.log(res)
+              })
             }
           } else {
             const [{ message }] = Object.values(fields)[0]

@@ -8,6 +8,14 @@ export function createBook(book) {
   })
 }
 
+export function updateBook(book) {
+  return request({
+    url: '/book/update',
+    method: 'post',
+    data: book
+  })
+}
+
 export function getBook(fileName) {
   return request({
     url: '/book/get',
