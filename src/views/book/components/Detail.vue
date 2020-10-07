@@ -233,6 +233,16 @@ export default {
       this.setDefault()
     },
     submitForm() {
+      const onSuccess = (res) => {
+        const { msg } = res
+        this.$notify({
+          title: '操作成功',
+          message: msg,
+          type: 'success',
+          duration: 2000
+        })
+        this.loading = false
+      }
       if (!this.loading) {
         this.loading = true
         this.$refs.postForm.validate((valid, fields) => {
@@ -242,21 +252,16 @@ export default {
             delete book.contentsTree
             if (!this.isEdit) {
               createBook(book).then(res => {
-                const { msg } = res
-                this.$notify({
-                  title: '操作成功',
-                  message: msg,
-                  type: 'success',
-                  duration: 2000
-                })
-                this.loading = false
+                onSuccess(res)
                 this.setDefault()
               }).catch(() => {
                 this.loading = false
               })
             } else {
               updateBook(book).then(res => {
-                console.log(res)
+                onSuccess(res)
+              }).catch(() => {
+                this.loading = false
               })
             }
           } else {
