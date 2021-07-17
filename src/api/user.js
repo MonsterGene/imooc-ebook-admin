@@ -21,3 +21,10 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function getVCode() {
+  return request({
+    url: '/valid-code',
+    method: 'get'
+  })
+}

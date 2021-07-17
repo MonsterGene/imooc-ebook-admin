@@ -20,6 +20,29 @@
           autocomplete="on"
         />
       </el-form-item>
+      <el-form-item prop="validCode" class="vc-input-wrapper">
+        <span class="svg-container el-icon-mobile">
+          <!-- <svg-icon icon-class="el-icon-mobile" /> -->
+        </span>
+        <el-input
+          ref="validCode"
+          v-model="loginForm.validCode"
+          type="text"
+          placeholder="手机验证码"
+          name="validCode"
+          tabindex="2"
+          autocomplete="on"
+          class="vc-input"
+          @blur="capsTooltip = false"
+          @keyup.enter.native="handleLogin"
+        />
+        <el-button
+          type="primary"
+          :disabled="!!vcTime"
+          class="vc-btn"
+          @click="getVCode"
+        >{{ vcTime ? `${vcTime}s` :'获取验证码' }}</el-button>
+      </el-form-item>
 
       <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
         <el-form-item prop="password">
@@ -33,7 +56,7 @@
             :type="passwordType"
             placeholder="密码"
             name="password"
-            tabindex="2"
+            tabindex="3"
             autocomplete="on"
             @keyup.native="checkCapslock"
             @blur="capsTooltip = false"
@@ -52,6 +75,7 @@
 </template>
 
 <script>
+import { getVCode } from '@/api/user'
 export default {
   name: 'Login',
   data() {
@@ -83,7 +107,8 @@ export default {
       loading: false,
       showDialog: false,
       redirect: undefined,
-      otherQuery: {}
+      otherQuery: {},
+      vcTime: 0
     }
   },
   watch: {
@@ -106,6 +131,27 @@ export default {
     }
   },
   methods: {
+    getVCode() {
+      console.log('获取验证码！')
+      this.vcTime = 60
+      const countDownTime = () => {
+        setTimeout(() => {
+          if (this.vcTime > 0) {
+            this.vcTime--
+            countDownTime()
+          }
+          console.log('count down', this.vcTime)
+        }, 1000)
+      }
+      getVCode().then(res => {
+        countDownTime()
+      }).catch(err => {
+        console.log(err)
+        setTimeout(() => {
+          this.vcTime = 0
+        }, 600)
+      })
+    },
     checkCapslock(e) {
       const { key } = e
       this.capsTooltip = key && key.length === 1 && (key >= 'A' && key <= 'Z')
@@ -233,6 +279,16 @@ $light_gray:#eee;
     padding: 160px 35px 0;
     margin: 0 auto;
     overflow: hidden;
+    .vc-input-wrapper {
+      .vc-input {
+        width: calc(100% - 145px);
+      }
+      .vc-btn {
+        position: absolute;
+        right: 3px;
+        top: 5px
+      }
+    }
   }
 
   .tips {
