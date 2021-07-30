@@ -22,9 +22,10 @@ export function logout() {
   })
 }
 
-export function getVCode() {
+export function getVCode(username) {
   return request({
-    url: '/valid-code',
-    method: 'get'
+    url: '/user/valid-code',
+    method: 'get',
+    params: { username }
   })
 }

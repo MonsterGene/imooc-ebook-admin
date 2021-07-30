@@ -5,7 +5,7 @@
       <div class="title-container">
         <h3 class="title">小慕读书</h3>
       </div>
-
+      <!-- 用户名 -->
       <el-form-item prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
@@ -20,13 +20,14 @@
           autocomplete="on"
         />
       </el-form-item>
-      <el-form-item prop="validCode" class="vc-input-wrapper">
+      <!-- 验证码 -->
+      <el-form-item v-if="loginType==='vc'" prop="validCode" class="vc-input-wrapper">
         <span class="svg-container el-icon-mobile">
           <!-- <svg-icon icon-class="el-icon-mobile" /> -->
         </span>
         <el-input
-          ref="validCode"
-          v-model="loginForm.validCode"
+          ref="password"
+          v-model="loginForm.password"
           type="text"
           placeholder="手机验证码"
           name="validCode"
@@ -43,8 +44,8 @@
           @click="getVCode"
         >{{ vcTime ? `${vcTime}s` :'获取验证码' }}</el-button>
       </el-form-item>
-
-      <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
+      <!-- 密码 -->
+      <el-tooltip v-else v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
         <el-form-item prop="password">
           <span class="svg-container">
             <svg-icon icon-class="password" />
@@ -68,8 +69,17 @@
         </el-form-item>
       </el-tooltip>
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
-
+      <el-button
+        :loading="loading"
+        type="primary"
+        style="width:100%;margin-bottom:30px;"
+        @click.native.prevent="handleLogin"
+      >登录</el-button>
+      <el-button
+        type="default"
+        style="width:100%;margin-bottom:30px;margin-left: 0"
+        @click.native.prevent="switchLoginType"
+      >{{ loginType === 'vc' ? '密码登录' : '验证码登录' }}</el-button>
     </el-form>
   </div>
 </template>
@@ -94,9 +104,10 @@ export default {
       }
     }
     return {
+      loginType: 'vc', // vc | pwd
       loginForm: {
         username: 'admin',
-        password: 'admin'
+        password: ''
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -131,6 +142,9 @@ export default {
     }
   },
   methods: {
+    switchLoginType() {
+      this.loginType = this.loginType === 'vc' ? 'pwd' : 'vc'
+    },
     getVCode() {
       console.log('获取验证码！')
       this.vcTime = 60
@@ -143,7 +157,7 @@ export default {
           console.log('count down', this.vcTime)
         }, 1000)
       }
-      getVCode().then(res => {
+      getVCode(this.loginForm.username).then(res => {
         countDownTime()
       }).catch(err => {
         console.log(err)
@@ -170,12 +184,16 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/login', this.loginForm)
+          this.$store.dispatch('user/login', { ...this.loginForm, loginType: this.loginType })
             .then(() => {
+              console.log('登录成功')
               this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
-              this.loading = false
+              setTimeout(() => {
+                this.loading = false
+              }, 1200)
             })
-            .catch(() => {
+            .catch((err) => {
+              console.log(err)
               this.loading = false
             })
         } else {
